@@ -3,9 +3,7 @@ import 'dotenv/config'
 import mongoose from "mongoose";
 import express from "express";
 import bodyParser from "body-parser"
-import encrypt from "mongoose-encryption";
-//Sezar şifreleme için gerekli istenilen sayıya göre alfabeyi kaydırır ve kelimeler şifreye göre tekrar şekillenir.
-//Python da sezar şifreleme dosyası adınsa sezar şifreleme mevcut.
+import md5 from "md5";
 import ejs from "ejs";
 
 
@@ -25,13 +23,7 @@ const UserSchema = new mongoose.Schema({
     },
 })
 
-// Şifre bir kademe daha güvenlidir aa yine de ulaşması kolaydır.
-// .env dosyasında virgül noktalı virgül const gibi kodda kullandığımız öğeler kullanılmaz.
-console.log(process.env.API_KEY);
-UserSchema.plugin(encrypt, { secret: process.env.SECRET, excludeFromEncryption: ['password'] });
-//UserSchema.plugin(encrypt, { secret: secret, excludeFromEncryption: ['password'] });
-//Şifreleme paketini ekledik.
-//şifrelenmesi gereken yeri en sonra köşeli parantez içine alırız.
+
 
 const SecretShema = new mongoose.Schema({
     secret: String,
@@ -58,7 +50,7 @@ app.get("/login", (req,res)=> {
 
 app.post("/login", (req,res)=> {
     const username = req.body.username;
-    const password = req.body.password;
+    const password = md5(req.body.password);
     User.findOne({email: username}).then(function(faundUser){
         if(faundUser.password === password) {
             res.render("secrets")
@@ -78,7 +70,7 @@ app.get("/register", (req,res)=> {
 app.post("/register", (req,res)=> {
     const newUser = new User({
         email: req.body.username,
-        password: req.body.password
+        password: md5(req.body.password)
     });
     newUser.save().then(()=> {console.log("Kaydedildi."), res.render("secrets");}) .catch((err) => {console.log(err)});
     /*
