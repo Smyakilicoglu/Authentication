@@ -1,4 +1,5 @@
 //jshint esversion:6
+import 'dotenv/config'
 import mongoose from "mongoose";
 import express from "express";
 import bodyParser from "body-parser"
@@ -25,8 +26,10 @@ const UserSchema = new mongoose.Schema({
 })
 
 // Şifre bir kademe daha güvenlidir aa yine de ulaşması kolaydır.
-const secret = "Thisisourlittlesecret";
-UserSchema.plugin(encrypt, { secret: secret, excludeFromEncryption: ['password'] });
+// .env dosyasında virgül noktalı virgül const gibi kodda kullandığımız öğeler kullanılmaz.
+console.log(process.env.API_KEY);
+UserSchema.plugin(encrypt, { secret: process.env.SECRET, excludeFromEncryption: ['password'] });
+//UserSchema.plugin(encrypt, { secret: secret, excludeFromEncryption: ['password'] });
 //Şifreleme paketini ekledik.
 //şifrelenmesi gereken yeri en sonra köşeli parantez içine alırız.
 
