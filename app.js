@@ -1,10 +1,13 @@
 //jshint esversion:6
+import ejs from "ejs";
 import 'dotenv/config'
 import mongoose from "mongoose";
 import express from "express";
 import bodyParser from "body-parser"
-import md5 from "md5";
-import ejs from "ejs";
+import bcrypt from "bcrypt";
+const saltRounds = 10;
+//buradaki sayı ne kadar artarsa bilgisayar o kadar karmaşık sayı üretmek için çalışır.
+//Sayı ne kadar artarsa oluyşturulmak için verilen sürenin artması gerekir.
 
 
 mongoose.connect("mongodb://127.0.0.1:27017/SecretsDB");
@@ -50,13 +53,14 @@ app.get("/login", (req,res)=> {
 
 app.post("/login", (req,res)=> {
     const username = req.body.username;
-    const password = md5(req.body.password);
-    User.findOne({email: username}).then(function(faundUser){
-        if(faundUser.password === password) {
-            res.render("secrets")
-        } else {
-            res.render("register")
-        }
+    const password = req.body.password;
+    User.findOne({email: username}).then(function(foundUser){
+        bcrypt.compare(password, foundUser.password , function(err, result) {
+            // result == true hash = faundUser.password 
+            if (result === true) {
+                res.render("secrets")
+            }
+        })
     }) .catch (function(err){
         console.log(err)
     })
@@ -68,11 +72,19 @@ app.get("/register", (req,res)=> {
 })
 
 app.post("/register", (req,res)=> {
-    const newUser = new User({
-        email: req.body.username,
-        password: md5(req.body.password)
+
+    bcrypt.genSalt(saltRounds, function(err, salt) {
+        bcrypt.hash(req.body.password, salt, function(err, hash) {
+            // Store hash in your password DB.
+            const newUser = new User({
+                email: req.body.username,
+                password: hash
+            });
+            newUser.save().then(()=> {console.log("Kaydedildi."), res.render("secrets");}) .catch((err) => {console.log(err)});
+        });
     });
-    newUser.save().then(()=> {console.log("Kaydedildi."), res.render("secrets");}) .catch((err) => {console.log(err)});
+
+    
     /*
     User.insertMany(emailarray).then(function(){
         emailarray.push(mail);  
