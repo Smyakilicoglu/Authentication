@@ -2,6 +2,9 @@
 import mongoose from "mongoose";
 import express from "express";
 import bodyParser from "body-parser"
+import encrypt from "mongoose-encryption";
+//Sezar şifreleme için gerekli istenilen sayıya göre alfabeyi kaydırır ve kelimeler şifreye göre tekrar şekillenir.
+//Python da sezar şifreleme dosyası adınsa sezar şifreleme mevcut.
 import ejs from "ejs";
 
 
@@ -20,6 +23,12 @@ const UserSchema = new mongoose.Schema({
         type: String,
     },
 })
+
+// Şifre bir kademe daha güvenlidir aa yine de ulaşması kolaydır.
+const secret = "Thisisourlittlesecret";
+UserSchema.plugin(encrypt, { secret: secret, excludeFromEncryption: ['password'] });
+//Şifreleme paketini ekledik.
+//şifrelenmesi gereken yeri en sonra köşeli parantez içine alırız.
 
 const SecretShema = new mongoose.Schema({
     secret: String,
